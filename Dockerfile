@@ -21,4 +21,4 @@ RUN chmod +x ./efbundle
 ENV ASPNETCORE_URLS=http://0.0.0.0:8080
 EXPOSE 8080
 
-ENTRYPOINT ["dotnet", "project.dll"]
+ENTRYPOINT ["sh", "-c", "./efbundle --connection \"$ConnectionStrings__DefaultConnection\" && dotnet project.dll"]
