@@ -4,12 +4,13 @@ using Microsoft.EntityFrameworkCore;
 using project.Components;
 using project.Components.Account;
 using project.Data;
+using project.Services;
 
 namespace project
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
@@ -21,6 +22,7 @@ namespace project
             builder.Services.AddScoped<IdentityUserAccessor>();
             builder.Services.AddScoped<IdentityRedirectManager>();
             builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
+            builder.Services.AddScoped<DbSeeder>();
 
             builder.Services.AddAuthentication(options =>
                 {
@@ -69,6 +71,13 @@ namespace project
 
             // Add additional endpoints required by the Identity /Account Razor components.
             app.MapAdditionalIdentityEndpoints();
+
+            using (var scope = app.Services.CreateScope())
+            {
+                var seeder = scope.ServiceProvider.GetRequiredService<DbSeeder>();
+                await seeder.SeedRolesAsync();
+                await seeder.SeedAdminUserAsync();
+            }
 
             app.Run();
         }
