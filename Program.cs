@@ -35,9 +35,10 @@ namespace project
                 options.UseMySql(connectionString, serverVersion, mySqlOptions =>
                     mySqlOptions.EnableRetryOnFailure(maxRetryCount: 3))
             );
-            //builder.Services.AddDatabaseDeveloperPageExceptionFilter();
+            builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
             builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
+                .AddRoles<IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddSignInManager()
                 .AddDefaultTokenProviders();
