@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using project.Components;
 using project.Components.Account;
 using project.Data;
+using project.Models;
 using project.Services;
 
 namespace project
