@@ -11,6 +11,8 @@ namespace project.Models
         public string? City { get; set; }
         public string? Photo { get; set; }
         public Guid Version { get; set; }
+
+        public ICollection<CandidateAttributeValue> AttributeValues { get; set; } = new List<CandidateAttributeValue>();
     }
 
 }

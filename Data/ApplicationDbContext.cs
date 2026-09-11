@@ -9,6 +9,7 @@ namespace project.Data
         public DbSet<JobAttribute> Attributes { get; set; }
         public DbSet<AttributeCategory> AttributeCategories { get; set; }
         public DbSet<AttributeOption> AttributeOptions { get; set; }
+        public DbSet<CandidateAttributeValue> CandidateAttributeValues { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
