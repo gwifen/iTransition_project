@@ -13,6 +13,7 @@ namespace project.Data
         public DbSet<Vacancy> Vacancies { get; set; }
         public DbSet<VacancyAttribute> VacancyAttributes { get; set; }
         public DbSet<TechTag> TechTags { get; set; }
+        public DbSet<Project> Projects { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -23,9 +24,6 @@ namespace project.Data
             builder.Entity<SkillAttribute>()
                 .HasIndex(x => x.Name)
                 .IsUnique();
-            //builder.Entity<Vacancy>()
-            //    .HasMany(x => x.TechTags)
-            //    .WithMany(x => x.Vacancies);
         }
     }
 }
