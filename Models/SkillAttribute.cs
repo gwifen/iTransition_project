@@ -11,6 +11,7 @@
         public ICollection<AttributeOption> Options { get; set; } = new List<AttributeOption>();
         public ICollection<CandidateAttributeValue> CandidateValues { get; set; } = new List<CandidateAttributeValue>();
         public ICollection<VacancyAttribute> VacancyAttributes { get; set; } = new List<VacancyAttribute>();
+        public ICollection<ResumeAttributeValue> ResumeValues { get; set; } = new List<ResumeAttributeValue>();
     }
 
     public enum AttributeType

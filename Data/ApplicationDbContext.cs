@@ -14,6 +14,8 @@ namespace project.Data
         public DbSet<VacancyAttribute> VacancyAttributes { get; set; }
         public DbSet<TechTag> TechTags { get; set; }
         public DbSet<Project> Projects { get; set; }
+        public DbSet<Resume> Resumes { get; set; }
+        public DbSet<ResumeAttributeValue> ResumeAttributeValues { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {

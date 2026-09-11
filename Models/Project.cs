@@ -9,6 +9,8 @@
         public string Discription { get; set; } = string.Empty;
         public DateTime StartDate { get; set; }
         public DateTime? EndDate { get; set; }
+        
         public ICollection<TechTag> TechTags { get; set; } = new List<TechTag>();
+        public ICollection<Resume> Resumes { get; set; } = new List<Resume>();
     }
 }

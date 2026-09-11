@@ -10,5 +10,6 @@
 
         public ICollection<VacancyAttribute> VacancyAttributes { get; set; } = new List<VacancyAttribute>();
         public ICollection<TechTag> TechTags { get; set; } = new List<TechTag>();
+        public ICollection<Resume> Resumes { get; set; } = new List<Resume>();
     }
 }
