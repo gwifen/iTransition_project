@@ -8,7 +8,7 @@
         public bool IsPublic { get; set; }
         public int MaxProjects { get; set; }
 
-        public ICollection<SkillAttribute> Attributes { get; set; } = new List<SkillAttribute>();
+        public ICollection<VacancyAttribute> VacancyAttributes { get; set; } = new List<VacancyAttribute>();
         public ICollection<TechTag> TechTags { get; set; } = new List<TechTag>();
     }
 }
