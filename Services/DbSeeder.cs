@@ -1,4 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using project.Data;
 using project.Models;
 
 namespace project.Services
@@ -7,12 +9,14 @@ namespace project.Services
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly ApplicationDbContext _dbContext;
         private readonly IConfiguration _config;
 
-        public DbSeeder(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager, IConfiguration config)
+        public DbSeeder(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager, ApplicationDbContext dbContext, IConfiguration config)
         {
             _userManager = userManager;
             _roleManager = roleManager;
+            _dbContext = dbContext;
             _config = config;
         }
 
@@ -51,6 +55,24 @@ namespace project.Services
                     await _userManager.AddToRoleAsync(user, "Admin");
                 }
             }
+        }
+
+
+        public async Task SeedAttributeCategoriesAsync()
+        {
+            string[] categories = ["Certification", "DomainKnowledge", "PersonalInformation", "SocialSkills"];
+
+            foreach(var category in categories)
+            {
+                if(!await _dbContext.AttributeCategories.AnyAsync(c=>c.Name == category))
+                {
+                    _dbContext.AttributeCategories.Add(new AttributeCategory
+                    {
+                        Name = category
+                    });
+                }
+            }
+            await _dbContext.SaveChangesAsync();
         }
     }
 }

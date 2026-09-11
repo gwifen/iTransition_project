@@ -78,6 +78,7 @@ namespace project
                 var seeder = scope.ServiceProvider.GetRequiredService<DbSeeder>();
                 await seeder.SeedRolesAsync();
                 await seeder.SeedAdminUserAsync();
+                await seeder.SeedAttributeCategoriesAsync();
             }
 
             app.Run();
