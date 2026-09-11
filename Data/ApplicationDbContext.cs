@@ -6,7 +6,7 @@ namespace project.Data
 {
     public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : IdentityDbContext<ApplicationUser>(options)
     {
-        public DbSet<JobAttribute> Attributes { get; set; }
+        public DbSet<SkillAttribute> Attributes { get; set; }
         public DbSet<AttributeCategory> AttributeCategories { get; set; }
         public DbSet<AttributeOption> AttributeOptions { get; set; }
         public DbSet<CandidateAttributeValue> CandidateAttributeValues { get; set; }
@@ -17,7 +17,7 @@ namespace project.Data
             builder.Entity<ApplicationUser>()
                 .Property(x => x.Version)
                 .IsConcurrencyToken();
-            builder.Entity<JobAttribute>()
+            builder.Entity<SkillAttribute>()
                 .HasIndex(x => x.Name)
                 .IsUnique();
         }
