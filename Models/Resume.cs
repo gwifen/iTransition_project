@@ -1,4 +1,6 @@
-﻿namespace project.Models
+﻿using System.Diagnostics;
+
+namespace project.Models
 {
     public class Resume
     {
@@ -11,6 +13,7 @@
 
         public ICollection<Project> Projects { get; set; } = new List<Project>();
         public ICollection<ResumeAttributeValue> AttributeValues { get; set; } = new List<ResumeAttributeValue>();
+        public ICollection<ResumeLike> ResumeLikes { get; set; } = new List<ResumeLike>();
     }
 
     public enum ResumeStatus

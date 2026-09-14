@@ -16,6 +16,7 @@ namespace project.Data
         public DbSet<Project> Projects { get; set; }
         public DbSet<Resume> Resumes { get; set; }
         public DbSet<ResumeAttributeValue> ResumeAttributeValues { get; set; }
+        public DbSet<ResumeLike> ResumeLikes { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
