@@ -2,7 +2,6 @@
 {
     public class ResumeAttributeValue
     {
-        public int Id { get; set; }
         public int ResumeId { get; set; }
         public Resume Resume { get; set; } = null!;
         public int SkillAttributeId { get; set; }

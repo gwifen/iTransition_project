@@ -28,6 +28,14 @@ namespace project.Data
             builder.Entity<SkillAttribute>()
                 .HasIndex(x => x.Name)
                 .IsUnique();
+            builder.Entity<CandidateAttributeValue>()
+                .HasKey(x => new { x.SkillAttributeId, x.UserId });
+            builder.Entity<VacancyAttribute>()
+                .HasKey(x => new { x.VacancyId, x.SkillAttributeId });
+            builder.Entity<ResumeAttributeValue>()
+                .HasKey(x => new { x.ResumeId, x.SkillAttributeId });
+            builder.Entity<ResumeLike>()
+                .HasKey(x => new { x.UserId, x.ResumeId });
         }
     }
 }

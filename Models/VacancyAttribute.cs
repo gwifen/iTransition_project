@@ -2,7 +2,6 @@
 {
     public class VacancyAttribute
     {
-        public int Id { get; set; }
         public int VacancyId { get; set; }
         public Vacancy Vacancy { get; set; } = null!;
         public int SkillAttributeId { get; set; }
