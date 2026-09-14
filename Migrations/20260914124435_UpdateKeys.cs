@@ -11,6 +11,8 @@ namespace project.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.Sql("SET SESSION sql_require_primary_key = OFF;");
+
             migrationBuilder.DropForeignKey(
                 name: "FK_VacancyAttributes_Vacancies_VacancyId", 
                 table: "VacancyAttributes");
@@ -174,11 +176,15 @@ namespace project.Migrations
                 principalTable: "Attributes", 
                 principalColumn: "Id", 
                 onDelete: ReferentialAction.Cascade);
+
+            migrationBuilder.Sql("SET SESSION sql_require_primary_key = ON;");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.Sql("SET SESSION sql_require_primary_key = OFF;");
+
             migrationBuilder.DropForeignKey(
                 name: "FK_VacancyAttributes_Vacancies_VacancyId", 
                 table: "VacancyAttributes");
@@ -318,6 +324,8 @@ namespace project.Migrations
                 principalTable: "Attributes", 
                 principalColumn: "Id", 
                 onDelete: ReferentialAction.Cascade);
+
+            migrationBuilder.Sql("SET SESSION sql_require_primary_key = ON;");
         }
     }
 }
