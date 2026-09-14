@@ -16,6 +16,7 @@ namespace project.Models
         public ICollection<Project> Projects { get; set; } = new List<Project>();
         public ICollection<Resume> Resumes { get; set; } = new List<Resume>();
         public ICollection<ResumeLike> ResumeLikes { get; set; } = new List<ResumeLike>();
+        public ICollection<Comment> Comments { get; set; } = new List<Comment>();
     }
 
 }
