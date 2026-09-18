@@ -20,13 +20,42 @@
 <h1>Register</h1>
 
 <div class="row">
-    <div class="col-md-4">
+    <div class="col-lg-4">
         <StatusMessage Message="@Message" />
         <EditForm Model="Input" asp-route-returnUrl="@ReturnUrl" method="post" OnValidSubmit="RegisterUser" FormName="register">
             <DataAnnotationsValidator />
             <h2>Create a new account.</h2>
             <hr />
             <ValidationSummary class="text-danger" role="alert" />
+            <div class="form-floating mb-3">
+                <InputText @bind-Value="Input.FirstName" class="form-control" autocomplete="given-name" aria-required="true" placeholder="John" />
+                <label>First name</label>
+                <ValidationMessage For="() => Input.FirstName" class="text-danger" />
+            </div>
+            <div class="form-floating mb-3">
+                <InputText @bind-Value="Input.LastName" class="form-control" autocomplete="family-name" aria-required="true" placeholder="Smith" />
+                <label>Last name</label>
+                <ValidationMessage For="() => Input.LastName" class="text-danger" />
+            </div>
+            <div class="form-floating mb-3">
+                <InputText @bind-Value="Input.Country" class="form-control" autocomplete="country-name" aria-required="true" placeholder="Poland" />
+                <label>Country</label>
+                <ValidationMessage For="() => Input.Country" class="text-danger" />
+            </div>
+            <div class="form-floating mb-3">
+                <InputText @bind-Value="Input.City" class="form-control" autocomplete="address-level2" aria-required="true" placeholder="Warsaw" />
+                <label>City</label>
+                <ValidationMessage For="() => Input.City" class="text-danger" />
+            </div>
+            <div class="form-floating mb-3">
+                <InputSelect @bind-Value="Input.Role" class="form-select">
+                    <option value="" disabled selected>Select a role</option>
+                    <option value="Candidate">Candidate</option>
+                    <option value="Recruiter">Recruiter</option>
+                </InputSelect>
+                <label>I want to register as</label>
+                <ValidationMessage For="() => Input.Role" class="text-danger" />
+            </div>
             <div class="form-floating mb-3">
                 <InputText @bind-Value="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com" />
                 <label for="email">Email</label>
@@ -45,7 +74,7 @@
             <button type="submit" class="w-100 btn btn-lg btn-primary">Register</button>
         </EditForm>
     </div>
-    <div class="col-md-6 col-md-offset-2">
+    <div class="col-lg-6 col-md-offset-2">
         <section>
             <h3>Use another service to register.</h3>
             <hr />
@@ -79,6 +108,10 @@
             identityErrors = result.Errors;
             return;
         }
+        if(! await AssignRoleToUser(user))
+        {
+            return;
+        }
 
         Logger.LogInformation("User created a new account with password.");
 
@@ -106,13 +139,30 @@
     {
         try
         {
-            return Activator.CreateInstance<ApplicationUser>();
+            var user = Activator.CreateInstance<ApplicationUser>();
+            user.FirstName = Input.FirstName;
+            user.LastName = Input.LastName;
+            user.City = Input.City;
+            user.Country = Input.Country;
+            return user;
         }
         catch
         {
             throw new InvalidOperationException($"Can't create an instance of '{nameof(ApplicationUser)}'. " +
                 $"Ensure that '{nameof(ApplicationUser)}' is not an abstract class and has a parameterless constructor.");
         }
+    }
+
+    private async Task<bool> AssignRoleToUser(ApplicationUser user)
+    {
+        var result = await UserManager.AddToRoleAsync(user, Input.Role);
+        if (!result.Succeeded)
+        {
+            identityErrors = result.Errors;
+            await UserManager.DeleteAsync(user);
+            return false;
+        }
+        return true;
     }
 
     private IUserEmailStore<ApplicationUser> GetEmailStore()
@@ -126,6 +176,26 @@
 
     private sealed class InputModel
     {
+        [Required]
+        [StringLength(50)]
+        [Display(Name = "First name")]
+        public string FirstName { get; set; } = "";
+
+        [Required]
+        [StringLength(50)]
+        [Display(Name = "Last name")]
+        public string LastName { get; set; } = "";
+
+        [Required]
+        [StringLength(100)]
+        [Display(Name = "City")]
+        public string City { get; set; } = "";
+
+        [Required]
+        [StringLength(100)]
+        [Display(Name = "Country")]
+        public string Country { get; set; } = "";
+
         [Required]
         [EmailAddress]
         [Display(Name = "Email")]
@@ -141,5 +211,8 @@
         [Display(Name = "Confirm password")]
         [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
         public string ConfirmPassword { get; set; } = "";
+
+        [Required]
+        public string Role { get; set; } = "Candidate";
     }
 }
