@@ -1,0 +1,208 @@
+﻿@page "/Profile"
+
+@using Microsoft.EntityFrameworkCore
+@using project.Models
+@using Microsoft.AspNetCore.Authorization
+@using project.Services
+
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager NavigationManager
+@inject IProfileService ProfileService
+
+@rendermode InteractiveServer
+
+@implements IAsyncDisposable
+
+@attribute [Authorize]
+
+<PageTitle>Profile</PageTitle>
+
+@if(user is null)
+{
+	<p>Loading...</p>
+}
+else
+{
+	<div class="container py-4">
+		<h2 class="mb-4">My Profile</h2>
+
+		@if (!string.IsNullOrEmpty(errorMessage))
+		{
+			<div class="alert alert-danger mb-4" role="alert">
+				@errorMessage
+			</div>
+		}
+
+		<div class="card mb-4">
+			<div class="card-header">About Me</div>
+			<div class="card-body">
+				<div class="row g-3">
+					<div class="col-md-6">
+						<label class="form-label">First name</label>
+						<InputText class="form-control" @bind-Value="user.FirstName" @bind-Value:after="MarkDirty"/>
+					</div>
+					<div class="col-md-6">
+						<label class="form-label">Last name</label>
+						<InputText class="form-control" @bind-Value="user.LastName" @bind-Value:after="MarkDirty" />
+					</div>
+					<div class="col-md-6">
+						<label class="form-label">City</label>
+						<InputText class="form-control" @bind-Value="user.City" @bind-Value:after="MarkDirty" />
+					</div>
+					<div class="col-md-6">
+						<label class="form-label">Country</label>
+						<InputText class="form-control" @bind-Value="user.Country" @bind-Value:after="MarkDirty" />
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="card mb-4">
+			<div class="card-header">
+				Your Attributes
+			</div>
+			<div class="card-body">
+				@foreach(var attrValue in user.AttributeValues)
+				{
+					<div class="mb-3">
+						<label class="form-label">
+							@attrValue.Attribute.Name
+						</label>
+						<InputText class="form-control" @bind-Value="attrValue.Value" @bind-Value:after="MarkDirty" />
+					</div>
+				}
+			</div>
+		</div>
+		<div class="card">
+			<div class="card-header d-flex justify-content-between">
+				<span>Projects</span>
+
+				<button class="btn btn-primary btn-sm" @onclick="AddProject">
+					Add project
+				</button>
+			</div>
+
+			<div class="card-body">
+
+				@foreach (var project in user.Projects)
+				{
+					<div class="border rounded p-3 mb-3">
+
+						<div class="mb-2">
+							<label class="form-label">Name</label>
+							<InputText class="form-control" @bind-Value="project.Name" />
+						</div>
+
+						<div class="mb-2">
+							<label class="form-label">Description</label>
+							<InputTextArea class="form-control" @bind-Value="project.Discription" />
+						</div>
+
+						<button class="btn btn-outline-primary btn-sm me-2" @onclick="() => EditProject(project)">
+							Edit
+						</button>
+
+						<button class="btn btn-outline-danger btn-sm" @onclick="() => DeleteProject(project)">
+							Delete
+						</button>
+
+					</div>
+				}
+
+			</div>
+		</div>
+	</div>
+}
+
+
+@code {
+	private ApplicationUser? user;
+	private CancellationTokenSource? saveCancellation;
+	private string? errorMessage;
+	private bool isDirty = false;
+
+	protected override async Task OnInitializedAsync()
+	{
+		var state = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+		var userId = state.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+		if (string.IsNullOrEmpty(userId))
+		{
+			NavigationManager.NavigateTo("/Account/Login");
+			return;
+		}
+		user = await ProfileService.GetUserProfileAsync(userId);
+	}
+
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (firstRender)
+		{
+			saveCancellation = new CancellationTokenSource();
+			_ = AutoSaveAsync(saveCancellation.Token);
+		}
+		await base.OnAfterRenderAsync(firstRender);
+	}
+
+	private void MarkDirty()
+	{
+		isDirty = true;
+	}
+
+	private async Task AutoSaveAsync(CancellationToken token)
+	{
+		using var timer = new PeriodicTimer(TimeSpan.FromSeconds(8));
+		while(await timer.WaitForNextTickAsync(token))
+		{
+			if(! await TryUpdateProfileAsync())
+			{
+				break;
+			}
+		}
+	}
+
+	private void AddProject()
+	{
+
+	}
+
+	private void EditProject(Project project)
+	{
+
+	}
+
+	private void DeleteProject(Project project)
+	{
+
+	}
+
+	public async ValueTask DisposeAsync()
+	{
+		if (saveCancellation is not null)
+		{
+			saveCancellation.Cancel();
+			saveCancellation.Dispose();
+		}
+
+		await TryUpdateProfileAsync();
+	}
+
+	private async Task<bool> TryUpdateProfileAsync()
+	{
+		if (user is null || !isDirty) return true;
+		
+		try
+		{
+			await ProfileService.UpdateProfileAsync(user);
+			isDirty = false;
+			errorMessage = null;
+			return true;
+		}
+		catch (DbUpdateConcurrencyException ex)
+		{
+			errorMessage = "Data is out of date. Reload the page";
+			Console.WriteLine($"Error while updating profile: {ex}");
+			await InvokeAsync(StateHasChanged);
+			return false;
+		}
+	}
+}

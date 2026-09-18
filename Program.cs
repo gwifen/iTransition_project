@@ -25,6 +25,8 @@ namespace project
             builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
             builder.Services.AddScoped<DbSeeder>();
 
+            builder.Services.AddScoped<IProfileService, ProfileService>();
+
             builder.Services.AddAuthentication(options =>
                 {
                     options.DefaultScheme = IdentityConstants.ApplicationScheme;
@@ -34,7 +36,7 @@ namespace project
 
             var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
             var serverVersion = new MySqlServerVersion(new Version(8, 4, 8));
-            builder.Services.AddDbContext<ApplicationDbContext>(options =>
+            builder.Services.AddDbContextFactory<ApplicationDbContext>(options =>
                 options.UseMySql(connectionString, serverVersion, mySqlOptions =>
                     mySqlOptions.EnableRetryOnFailure(maxRetryCount: 3))
             );
