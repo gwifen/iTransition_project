@@ -1,0 +1,57 @@
+﻿@using project.Models
+
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label class="form-label" for="search">
+                    Search
+                </label>
+                <input id="search" class="form-control" value="@SearchText" @oninput="e => HandleSearchInput(e.Value?.ToString())" placeholder="Search by name..." />
+            </div>
+            <div class="col-md-4">
+                <label class="form-label" for="category">
+                    Category
+                </label>
+                <select id="category" class="form-select" value="@SelectedCategoryId" @onchange="e => OnCategoryChanged(Convert.ToInt32(e.Value))">
+                    <option value="0">All categories</option>
+                    @foreach (var category in Categories)
+                    {
+                        <option value="@category.Id">@category.Name</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="button" class="btn btn-outline-primary w-100" @onclick="TriggerSearch">
+                    Search
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public string? SearchText { get; set; }
+    [Parameter] public EventCallback<string?> SearchTextChanged { get; set; }
+
+    [Parameter] public int SelectedCategoryId { get; set; }
+    [Parameter] public EventCallback<int> SelectedCategoryIdChanged { get; set; }
+
+    [Parameter, EditorRequired] public List<AttributeCategory> Categories { get; set; } = new();
+
+    [Parameter] public EventCallback OnSearch { get; set; }
+
+    private async Task HandleSearchInput(string value)
+    {
+        SearchText = value;
+        await SearchTextChanged.InvokeAsync(SearchText);
+    }
+
+    private async Task OnCategoryChanged(int value)
+    {
+        SelectedCategoryId = value;
+        await SelectedCategoryIdChanged.InvokeAsync(SelectedCategoryId);
+    }
+
+    private Task TriggerSearch() => OnSearch.InvokeAsync();
+}

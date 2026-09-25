@@ -1,0 +1,116 @@
+﻿@using project.Models
+
+<div class="card mt-4">
+	<div class="card-header">
+		<h4 class="mb-0">@(Model.Id == 0 ? "Create Attribute" : "Edit Attribute")</h4>
+	</div>
+	<div class="card-body">
+		<EditForm Model="Model" OnValidSubmit="HandleSubmit">
+			<DataAnnotationsValidator />
+			<ValidationSummary class="text-danger" />
+			@if (!string.IsNullOrEmpty(FormErrorMessage))
+			{
+				<div class="alert alert-danger py-2 mb-3">@FormErrorMessage</div>
+			}
+			<div class="mb-3">
+				<label class="form-label" for="attributeName">
+					Name
+				</label>
+				<InputText id="attributeName" class="form-control" @bind-Value="Model.Name" />
+				<ValidationMessage For="()=>Model.Name" class="text-danger" />
+			</div>
+			<div class="mb-3">
+				<label class="form-label" for="attributeDescription">
+					Description
+				</label>
+				<InputTextArea id="attributeDescription" class="form-control" rows="3" @bind-Value="Model.Description" />
+				<ValidationMessage For="()=>Model.Description" class="text-danger" />
+			</div>
+			<div class="mb-3">
+				<label class="form-label" for="attributeCategory">
+					Category
+				</label>
+				<InputSelect id="attributeCategory" class="form-select" @bind-Value="Model.CategoryId">
+					<option value="" disabled selected>Select category</option>
+					@foreach(var category in Categories)
+					{
+						<option value="@category.Id">@category.Name</option>
+					}
+				</InputSelect>
+				<ValidationMessage For="()=>Model.CategoryId" class="text-danger" />
+			</div>
+			<div class="mb-3">
+				<label class="form-label" for="attributeType">
+					Type
+				</label>
+				<InputSelect id="attributeType" class="form-select" @bind-Value="Model.Type">
+					<option value="" disabled selected>Select type</option>
+					@foreach(var type in Enum.GetValues<AttributeType>())
+					{
+						<option value="@type">@type.ToString()</option>
+					}
+				</InputSelect>
+			</div>
+			@if(Model.Type == AttributeType.Select)
+			{
+				<div class="mb-3">
+					<label class="form-label">
+						Options
+					</label>
+					@if (Model.Options.Any())
+					{
+						@foreach(var option in Model.Options)
+						{
+							<div class="input-group mb-2">
+								<InputText class="form-control" @bind-Value="option.Value" placeholder="Option value" />
+								<button type="button" class="btn btn-outline-danger" @onclick="()=>Model.Options.Remove(option)">
+									<i class="bi bi-x-lg" aria-hidden="true"></i>
+								</button>
+							</div>
+						}
+					}
+					<button type="button" class="btn btn-sm btn-outline-secondary" @onclick="() => Model.Options.Add(new AttributeOption())">
+						Add option
+					</button>
+				</div>
+			}
+			<div class="d-flex gap-2 mt-4">
+				<button type="submit" class="btn btn-success">Save</button>
+				<button type="button" class="btn btn-secondary" @onclick="OnCancel">Cancel</button>
+			</div>
+		</EditForm>
+	</div>
+</div>
+
+@code {
+	[Parameter, EditorRequired] public SkillAttribute Model { get; set; } = default!;
+	[Parameter, EditorRequired] public List<AttributeCategory> Categories { get; set; } = new();
+	[Parameter] public EventCallback<SkillAttribute> OnSave { get; set; }
+	[Parameter] public EventCallback OnCancel { get; set; }
+	private string? FormErrorMessage;
+
+	private async Task HandleSubmit()
+	{
+		FormErrorMessage = null;
+		if(Model.CategoryId <= 0)
+		{
+			FormErrorMessage = "Please select a category.";
+			return;
+		}
+		Model.Name = Model.Name.Trim();
+		if(Model.Type == AttributeType.Select)
+		{
+			if (!Model.Options.Any())
+			{
+				FormErrorMessage = "A Select attribute must have at least one option.";
+				return;
+			}
+		}
+		else
+		{
+			Model.Options.Clear();
+		}
+
+		await OnSave.InvokeAsync(Model);
+	}
+}

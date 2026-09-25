@@ -26,6 +26,7 @@ namespace project
             builder.Services.AddScoped<DbSeeder>();
 
             builder.Services.AddScoped<IProfileService, ProfileService>();
+            builder.Services.AddScoped<IAttributeService, AttributeService>();
 
             builder.Services.AddAuthentication(options =>
                 {

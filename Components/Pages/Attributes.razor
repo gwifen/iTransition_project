@@ -1,0 +1,248 @@
+﻿@page "/Attributes"
+
+@using Microsoft.AspNetCore.Authorization
+@using project.Models
+@using project.Services
+
+@inject IAttributeService AttributeService
+
+@rendermode InteractiveServer
+
+@attribute [Authorize(Roles = "Recruiter,Admin")]
+
+<PageTitle>Attributes</PageTitle>
+
+<h1>Attribute Library</h1>
+
+@if (!string.IsNullOrEmpty(ErrorMessage))
+{
+	<div class="alert alert-danger" role="alert">
+		@ErrorMessage
+	</div>
+}
+
+<div class="d-flex gap-2 mb-3">
+	<button type="button" class="btn btn-primary" @onclick="Create">
+		Create
+	</button>
+	<button type="button" class="btn btn-secondary" disabled="@(SelectedAttribute is null)" @onclick="EditSelected">
+		Edit
+	</button>
+	<button type="button" class="btn btn-danger" disabled="@(SelectedAttribute is null)" @onclick="DeleteSelected">
+		Delete
+	</button>
+</div>
+
+<AttributeFilter @bind-SearchText="SearchText" @bind-SelectedCategoryId="SelectedCategoryId" Categories="Categories" OnSearch="LoadAttributes" />
+
+@if (IsLoading)
+{
+	<p>Loading...</p>
+}
+else if (SkillAttributes.Count == 0)
+{
+	<div class="alert alert-info">
+		No attributes found.
+	</div>
+}
+else
+{
+	<div class="table-responsive">
+		<table class="table table-hover align-middle">
+			<thead>
+				<tr>
+					<th>
+						<button type="button" class="btn btn-outline-secondary border-0 align-items-center justify-content-center p-0" style="width: 25px; height: 25px;" disabled="@(SelectedAttribute is null)" @onclick="Deselect" title="Clear selection">
+							<i class="bi bi-dash-square"></i>
+						</button>
+					</th>
+					<th>Name</th>
+					<th>Category</th>
+					<th>Type</th>
+					<th>Options</th>
+				</tr>
+			</thead>
+			<tbody>
+				@foreach(var attr in SkillAttributes)
+				{
+					<tr class="@(SelectedAttribute?.Id==attr.Id ? "table-active" : "")" @onclick="()=>SelectedAttribute=attr">
+						<td>
+							<input type="radio" name="selectedAttribute" checked="@(SelectedAttribute?.Id == attr.Id)" @onclick:stopPropagation="true" @onchange="()=>SelectedAttribute=attr" />
+						</td>
+						<td>
+							@attr.Name
+							@if (!string.IsNullOrWhiteSpace(attr.Description))
+                            {
+                                <div class="small text-muted">
+                                    @attr.Description
+                                </div>
+                            }
+						</td>
+						<td>
+							@attr.Category?.Name
+						</td>
+						<td>
+							@attr.Type.ToString()
+						</td>
+						<td>
+							@if(attr.Type == AttributeType.Select)
+							{
+								if (attr.Options.Any())
+								{
+									<span>
+										@string.Join(", ", attr.Options.Select(x=>x.Value))
+									</span>
+								}
+								else
+								{
+									<span class="text-muted">
+										No options
+									</span>
+								}
+							}
+							else
+							{
+								<span class="text-muted">—</span>
+							}
+						</td>
+					</tr>
+				}
+			</tbody>
+		</table>
+	</div>
+}
+@if (IsEditing)
+{
+	<AttributeEditForm Model="EditModel" Categories="Categories" OnSave="SaveAttribute" OnCancel="()=>IsEditing=false" />
+}
+
+@code {
+	private List<SkillAttribute> SkillAttributes = new();
+	private List<AttributeCategory> Categories = new();
+	private SkillAttribute? SelectedAttribute;
+	private string? ErrorMessage;
+	private string? SearchText;
+	private int SelectedCategoryId;
+	private bool IsLoading;
+	private bool IsEditing;
+	private SkillAttribute EditModel = new();
+
+	protected override async Task OnInitializedAsync()
+	{
+		try
+		{
+			Categories = await AttributeService.GetCategoriesAsync();
+			await LoadAttributes();
+		}
+		catch(Exception ex)
+		{
+			ErrorMessage = $"Failed to load categories";
+			Console.WriteLine($"Error while loading categories: {ex}");
+		}
+
+	}
+
+	private async Task LoadAttributes()
+	{
+		IsLoading = true;
+		try
+		{
+			SkillAttributes = await AttributeService.SearchAsync(SearchText, SelectedCategoryId);
+		}
+		catch(Exception ex)
+		{
+			ErrorMessage = $"Failed to load attributes";
+			Console.WriteLine($"Error while loading attributes: {ex}");
+		}
+		finally
+		{
+			IsLoading = false;
+			StateHasChanged();
+		}
+
+	}
+	private void Create()
+	{
+		ErrorMessage = null;
+		// SelectedAttribute = null;
+		EditModel = new SkillAttribute
+		{
+			Type = AttributeType.String,
+			CategoryId = Categories.FirstOrDefault()?.Id ?? 0,
+			Options = new List<AttributeOption>()
+		};
+		IsEditing = true;
+		StateHasChanged();
+	}
+
+	private async Task EditSelected()
+	{
+		if(SelectedAttribute is null) return;
+		ErrorMessage = null;
+
+		var attr = await AttributeService.GetByIdAsync(SelectedAttribute.Id);
+		if (attr is null)
+		{
+			ErrorMessage = "Attribute was not found.";
+			return;
+		}
+		EditModel = new SkillAttribute
+		{
+			Id = attr.Id,
+			Name = attr.Name,
+			Description = attr.Description,
+			CategoryId = attr.CategoryId,
+			Type = attr.Type,
+			Options = attr.Options.Select(o => new AttributeOption
+			{
+				Id = o.Id,
+				SkillAttributeId = o.SkillAttributeId,
+				Value = o.Value
+			}).ToList()
+		};
+		IsEditing = true;
+	}
+
+	private async Task DeleteSelected()
+	{
+		if (SelectedAttribute is null) return;
+		ErrorMessage = null;
+		try
+		{
+			await AttributeService.DeleteAsync(SelectedAttribute.Id);
+			SelectedAttribute = null;
+			IsEditing = false;
+			await LoadAttributes();
+		}
+		catch(Exception ex)
+		{
+			ErrorMessage = $"Failed to delete attribute";
+			Console.WriteLine($"Error while deleting attribute: {ex}");
+		}
+	}
+
+	private async Task SaveAttribute(SkillAttribute validModel)
+	{
+		ErrorMessage = null;
+		try
+		{
+			if(validModel.Id == 0)
+			{
+				await AttributeService.CreateAsync(validModel);
+			}
+			else
+			{
+				await AttributeService.UpdateAsync(validModel);
+			}
+			IsEditing = false;
+			await LoadAttributes();
+		}
+		catch(Exception ex)
+		{
+			ErrorMessage = "Failed to save attribute.";
+			Console.WriteLine($"Error while saving attribute: {ex}");
+		}
+	}
+
+	private void Deselect() => SelectedAttribute = null;
+}
